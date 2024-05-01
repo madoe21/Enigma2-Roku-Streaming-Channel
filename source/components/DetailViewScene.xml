@@ -1,0 +1,55 @@
+<!-- SettingsScene.xml -->
+<component name="DetailViewScene" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/source/DetailViewScene.bs" />
+    <children>
+        <Poster
+            id="backgroundPoster"
+            uri="pkg:/images/background.jpg"
+            width="1280"
+            height="720"
+            translation="[0, 0]" />
+        
+        <!-- Vertikale Liste für die Anzeige von Favoriten und Einstellungen -->
+        <VerticalList
+            id="verticalList"
+            translation="[50, 50]">
+
+            <!-- Beispiel für ein Favoriten-Element -->
+            <Tile>
+                <Label
+                    text="Favoriten 1"
+                    font="font:Regular"
+                    color="0xFFFFFFFF" />
+                <!-- Horizontale Liste für Kanäle -->
+                <HorizontalList>
+                    <!-- Beispiel für ein Kanal-Element -->
+                    <Tile>
+                        <Poster
+                            uri="pkg:/images/channel1_logo.png"
+                            width="100"
+                            height="100" />
+                        <Label
+                            text="Channel 1"
+                            font="font:Regular"
+                            color="0xFFFFFFFF" />
+                    </Tile>
+                    <!-- Weitere Kanäle können hier hinzugefügt werden -->
+                </HorizontalList>
+            </Tile>
+
+            <!-- Weitere Favoriten und Einstellungen können hier hinzugefügt werden -->
+
+            <!-- Einstellungen-Element -->
+            <Tile>
+                <Poster
+                    uri="pkg:/images/settings.png"
+                    width="200"
+                    height="100" />
+                <Label
+                    text="Settings"
+                    font="font:Medium"
+                    color="0xFFFFFFFF" />
+            </Tile>
+        </VerticalList>
+    </children>
+</component>

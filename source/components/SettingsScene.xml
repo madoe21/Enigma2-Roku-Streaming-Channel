@@ -1,0 +1,86 @@
+<!-- SettingsScene.xml -->
+<component name="SettingsScene" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/source/SettingsScene.bs" />
+    <children>
+        <!-- Title -->
+        <Label 
+            id="title"
+            translation="[10, 10]"
+            text="Einstellungen"
+            font="font:MediumBoldSystemFont" />
+
+        <!-- Hostname -->
+        <Label 
+            id="hostnameLabel"
+            translation="[10, 40]"
+            text="Hostname:" />
+
+        <TextEdit 
+            id="hostnameTextBox"
+            translation="[120, 40]"
+            width="200" />
+
+        <!-- Web Interface Port -->
+        <Label 
+            id="webInterfacePortLabel"
+            translation="[10, 70]"
+            text="Web Interface Port:" />
+
+        <TextEdit 
+            id="webInterfacePortTextBox"
+            translation="[160, 70]"
+            width="100" />
+
+        <!-- Streaming Port -->
+        <Label 
+            id="streamingPortLabel"
+            translation="[10, 100]"
+            text="Streaming Port:" />
+
+        <TextEdit 
+            id="streamingPortTextBox"
+            translation="[130, 100]"
+            width="100" />
+
+        <!-- Username -->
+        <Label 
+            id="usernameLabel"
+            translation="[10, 130]"
+            text="Username:" />
+
+        <TextEdit 
+            id="usernameTextBox"
+            translation="[100, 130]"
+            width="150" />
+
+        <!-- Password -->
+        <Label 
+            id="passwordLabel"
+            translation="[10, 160]"
+            text="Password:" />
+
+        <TextEdit 
+            id="passwordTextBox"
+            translation="[100, 160]"
+            width="150"
+            password="true" />
+
+        <!-- Checkboxes -->
+        <Checkbox
+            id="useHttpsCheckbox"
+            translation="[10, 190]"
+            text="Use HTTPS" />
+
+        <Checkbox
+            id="requireAuthCheckbox"
+            translation="[10, 220]"
+            text="Require Authentication" />
+
+        <!-- Save Button -->
+        <Button
+            id="settingsSaveButton"
+            translation="[10, 250]"
+            text="Save"
+            width="100" />
+    </children>
+</component>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+<file target-language="en-US" source-language="de-DE">
+<body>
+  <trans-unit id="0">
+    <source>Settings</source>
+    <target>Einstellungen</target>
+  </trans-unit>
+  <trans-unit id="1">
+    <source>Hostname</source>
+    <target>Hostname</target>
+  </trans-unit>
+  <trans-unit id="2">
+    <source>Web Interface Port</source>
+    <target>Web Interface Port</target>
+  </trans-unit>
+  <trans-unit id="3">
+    <source>Use HTTPS</source>
+    <target>Verwendung von HTTPS</target>
+  </trans-unit>
+  <trans-unit id="4">
+    <source>Streaming Port</source>
+    <target>Streaming Port</target>
+  </trans-unit> 
+  <trans-unit id="5">
+    <source>Username</source>
+    <target>Benutzername</target>
+  </trans-unit>
+  <trans-unit id="6">
+    <source>Password</source>
+    <target>Passwort</target>
+  </trans-unit>
+  <trans-unit id="7">
+    <source>Web Authentication Required</source>
+    <target>Authentifizierung für das Webinterface erforderlich</target>
+  </trans-unit>
+  <trans-unit id="8">
+    <source>Streaming Authentication Required</source>
+    <target>Authentifizierung für das Streaming erforderlich</target>
+  </trans-unit>
+  <trans-unit id="9">
+    <source>Cancel</source>
+    <target>Abbrechen</target>
+  </trans-unit>
+  <trans-unit id="10"> 
+    <source>Save</source>
+    <target>Speichern</target> 
+  </trans-unit>
+  <trans-unit id="11"> 
+    <source>Author</source>
+    <target>Autor</target> 
+  </trans-unit>
+  <trans-unit id="12">
+    <source>See</source>
+    <target>Siehe</target>
+  </trans-unit>
+</body>
+</file>
+</xliff>

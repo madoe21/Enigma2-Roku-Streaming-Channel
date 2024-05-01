@@ -1,0 +1,14 @@
+<!-- VideoPlayerScene.xml -->
+<component name="VideoPlayerScene" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/source/VideoPlayerScene.bs" />
+    <children>        
+        <!-- VideoPlayer-Node -->
+        <VideoPlayer
+            id="videoPlayer"
+            translation="[0, 0]"
+            width="1280"
+            height="720"
+            contentURI=""
+        />
+    </children>
+</component>

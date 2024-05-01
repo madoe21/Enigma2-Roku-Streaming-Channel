@@ -1,0 +1,23 @@
+# Ignored files for Node.js projects
+node_modules/
+dist/
+.pnp
+.pnp.js
+*.pnp.js
+.cache/
+*.lock
+*.swp
+.DS_Store
+package-lock.json   # Added to ignore package-lock.json
+
+# Ignore the out directory, where compiled BrighterScript files reside
+out/
+
+# Ignore .DS_Store files on macOS
+.DS_Store
+
+# Ignore .vscode directory created by Visual Studio Code
+.vscode/
+
+# Ignore *.log files
+*.log

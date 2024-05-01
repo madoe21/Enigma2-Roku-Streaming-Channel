@@ -1,0 +1,25 @@
+' Imports
+import "pkg:/source/Utils.bs"
+import "pkg:/source/Remote.bs"
+import "pkg:/source/Settings.bs"
+
+function CreateVideoPlayerScene()
+    ' Die URL des Videos aus den Parametern extrahieren
+    videoURL = m.top.videoURL
+
+    ' Video-Player erstellen und Wiedergabe starten
+    screen = CreateObject("roSGScreen")
+    videoPlayerView = screen.CreateScene("VideoPlayerView")
+    videoPlayer = videoPlayerView.CreateNode("VideoPlayer")
+    videoPlayer.contentUri = videoURL
+    videoPlayer.control = "play" ' Wiedergabe starten
+    screen.SetContent(videoPlayerView)
+
+    ' Event-Handler für die Schließtaste hinzufügen
+    m.top.observeField("backButtonPressed", "OnBackButtonPressed")
+end function
+
+function OnBackButtonPressed(screen)
+    ' Schließtaste wurde gedrückt, schließe den Videoplayer und kehre zur vorherigen Ansicht zurück
+    screen.Close()
+end function

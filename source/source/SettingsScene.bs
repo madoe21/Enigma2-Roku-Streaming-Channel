@@ -1,0 +1,89 @@
+' Imports
+import "pkg:/source/Utils.bs"
+import "pkg:/source/Remote.bs"
+import "pkg:/source/Settings.bs"
+
+function CreateSettingsScene() as Object
+        ' Detailansicht erstellen und anzeigen
+        screen = CreateObject("roSGScreen")
+        settingsScene = screen.CreateScene("SettingsScene")
+    
+        settings = LoadSettings() ' Einstellungen laden
+    
+        ' Event-Handler für die Fernbedienungstasten registrieren
+        settingsScene.observeField("onKeyEvent", "OnRemoteKeyEvent")
+    
+        ' Aktualisieren von currentScene
+        currentScene = "SettingsView"
+    
+    ' Event-Handler für die Fernbedienungstasten registrieren
+    settingsScene.observeField("onKeyEvent", "OnRemoteKeyEvent")
+
+
+        ' Einstellungsmenü erstellen
+        settingsView = CreateObject("roSGNode", "SettingsScene")
+        settingsView.AddFields({
+            title: "Einstellungen",
+            hostname: settings.hostname,
+            webInterfacePort: settings.webInterfacePort,
+            streamingPort: settings.streamingPort,
+            username: settings.username,
+            password: settings.password,
+            useHttps: settings.useHttps,
+            requireAuthForWebInterface: settings.requireAuthForWebInterface,
+            requireAuthForStreaming: settings.requireAuthForStreaming
+        })
+
+    ' Weitere UI-Elemente für die neuen Authentifizierungseinstellungen hinzufügen
+    requireAuthForWebInterfaceCheckbox = CreateObject("roSGNode", "Checkbox")
+    requireAuthForWebInterfaceCheckbox.text = "Authentifizierung für Webinterface erforderlich"
+    requireAuthForWebInterfaceCheckbox.checked = settings.requireAuthForWebInterface
+
+    requireAuthForStreamingCheckbox = CreateObject("roSGNode", "Checkbox")
+    requireAuthForStreamingCheckbox.text = "Authentifizierung für Streaming erforderlich"
+    requireAuthForStreamingCheckbox.checked = settings.requireAuthForStreaming
+
+    ' UI-Elemente zur View hinzufügen
+    settingsView.appendChild(title)
+    settingsView.appendChild(versionLabel)
+    settingsView.appendChild(hostnameLabel)
+    settingsView.appendChild(hostnameTextBox)
+    settingsView.appendChild(webInterfacePortLabel)
+    settingsView.appendChild(webInterfacePortTextBox)
+    settingsView.appendChild(streamingPortLabel)
+    settingsView.appendChild(streamingPortTextBox)
+    settingsView.appendChild(usernameLabel)
+    settingsView.appendChild(usernameTextBox)
+    settingsView.appendChild(passwordLabel)
+    settingsView.appendChild(passwordTextBox)
+    settingsView.appendChild(useHttpsCheckbox)
+    settingsView.appendChild(requireAuthCheckbox)
+    settingsView.appendChild(requireAuthForWebInterfaceCheckbox)
+    settingsView.appendChild(requireAuthForStreamingCheckbox)
+    settingsView.appendChild(settingsSaveButton)
+
+    ' Inhalte der Detailansicht setzen
+    settingsScene.SetContent([CreateSettingsScene()])
+
+    ' Detailansicht anzeigen
+    screen.SetContent(settingsScene)
+
+    return screen
+end function
+
+function ShowDiscardChangesDialog()
+    dialog = CreateObject("roSGScreen")
+    dialogScene = dialog.CreateScene("DiscardChangesDialog")
+
+    ' Dialoginhalt erstellen
+    dialogContent = CreateObject("roSGNode", "Dialog")
+    dialogContent.title = "Änderungen verwerfen?"
+    dialogContent.body = "Möchten Sie die vorgenommenen Änderungen verwerfen?"
+    dialogContent.buttons = ["Ja", "Nein"] ' Buttons: Ja und Nein
+    dialogContent.observeField("buttonSelected", "OnDialogButtonSelected")
+
+    dialogScene.SetContent(dialogContent)
+
+    ' Listener für die Zurück-Taste in der Dialogszene hinzufügen
+    dialogScene.observeField("onKeyEvent", "OnDialogKeyEvent")	
+end function

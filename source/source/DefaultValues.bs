@@ -1,0 +1,13 @@
+' DefaultValues.bs
+const APP_NAME = "Enigma 2 Roku Streaming Player"
+const VERSION = "0.1.0"
+const AUTHOR = "Madoe21"
+const GITHUB_URL = "https://github.com/madoe21/Enigma2-Roku-Streaming-Channel"
+const HOSTNAME = "dreambox.local"
+const WEBIF_PORT = "80"
+const USE_HTTPS = false
+const STREAMING_PORT = "8001"
+const USERNAME = "root"
+const PASSWORD = ""
+const WEB_AUTH_REQUIRED = false
+const STREAMING_AUTH_REQUIRED = false

@@ -1,0 +1,108 @@
+import "pkg:/source/Utils.bs"
+
+function OnRemoteKeyEvent(key as Object)
+    keyCode = key.GetKeyCode()
+    if currentScene = "SettingsView"
+        ' Implementiere die Logik für die Fernbedienungstasten in der Einstellungsansicht
+        if keyCode = "select"
+            ' Implementierung der Interaktion mit den UI-Elementen in der SettingsView
+            ' Je nach aktuell ausgewähltem UI-Element entsprechende Aktion ausführen
+            if m.top.findNode("SettingsView").focusedChild = m.top.findNode("hostnameTextBox")
+                ShowKeyboard(m.top.findNode("hostnameTextBox"))
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("webInterfacePortTextBox")
+                ShowKeyboard(m.top.findNode("webInterfacePortTextBox"))
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("streamingPortTextBox")
+                ShowKeyboard(m.top.findNode("streamingPortTextBox"))
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("usernameTextBox")
+                ShowKeyboard(m.top.findNode("usernameTextBox"))
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("passwordTextBox")
+                ShowKeyboard(m.top.findNode("passwordTextBox"))
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("useHttpsCheckbox")
+                ' Checkbox umschalten zwischen selected und unselected
+                m.top.findNode("useHttpsCheckbox").checked = not m.top.findNode("useHttpsCheckbox").checked
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("requireAuthCheckbox")
+                ' Checkbox umschalten zwischen selected und unselected
+                m.top.findNode("requireAuthCheckbox").checked = not m.top.findNode("requireAuthCheckbox").checked
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("requireAuthForWebInterfaceCheckbox")
+                ' Checkbox umschalten zwischen selected und unselected
+                m.top.findNode("requireAuthForWebInterfaceCheckbox").checked = not m.top.findNode("requireAuthForWebInterfaceCheckbox").checked
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("requireAuthForStreamingCheckbox")
+                ' Checkbox umschalten zwischen selected und unselected
+                m.top.findNode("requireAuthForStreamingCheckbox").checked = not m.top.findNode("requireAuthForStreamingCheckbox").checked
+            else if m.top.findNode("SettingsView").focusedChild = m.top.findNode("settingsSaveButton")
+                ' Einstellungen speichern
+                ' Implementierung der Speicherfunktionalität
+                SaveSettings()
+            end if
+        else if keyCode = "back"
+            ' Zurück-Taste in der Einstellungsansicht
+            ' Dialog anzeigen, um zu bestätigen, ob Änderungen verworfen werden sollen
+            ShowDiscardChangesDialog()
+        end if
+    else if currentScene = "DetailView"
+        ' Navigation in der Detailansicht abhängig von der gedrückten Taste
+        if keyCode = "up" or keyCode = "down"
+            ' Navigation zwischen den Favoriten (vertikale Liste)
+            verticalList = m.top.findNode("VerticalList")
+            verticalList.moveFocus(keyCode = "down")
+        else if keyCode = "left" or keyCode = "right"
+            ' Navigation innerhalb des aktuellen Favoriten (horizontale Liste)
+            currentList = m.top.findNode("HorizontalList").getFocusedChild().getFocusedChild()
+            if currentList <> invalid
+                currentList.moveFocus(keyCode = "right")
+            end if
+        else if keyCode = "select"
+            ' Öffne das ausgewählte Element in der Detailansicht
+            OpenSelectedElementInDetailView()
+        end if
+    else if currentScene = "VideoPlayerView"
+        ' Implementiere die Logik für die Fernbedienungstasten im Video Player
+        if keyCode = "select"
+            if videoPlayer.state = "pause"
+                videoPlayer.control = "play"
+            else
+                videoPlayer.control = "pause"
+            end if
+        else if keyCode = "volumeUp"
+            ' Lautstärke erhöhen
+            videoPlayer.volume = videoPlayer.volume + 0.1
+        else if keyCode = "volumeDown"
+            ' Lautstärke reduzieren
+            videoPlayer.volume = videoPlayer.volume - 0.1
+        else if keyCode = "back"
+            CloseVideoPlayerAndRestoreView(videoScreen)
+        end if
+    end if
+end function
+
+function OnRetryButtonPressed()
+    ' Hier kann die Detailansicht aktualisiert werden, um den Download erneut zu versuchen
+    settings = LoadSettings()
+    m.top.Replace(CreateDetailView(settings))
+end function
+
+function OnDialogButtonSelected(event as Object)
+    buttonIndex = event.getData()
+    if buttonIndex = 0 ' Button Ja ausgewählt
+        ' Detail View öffnen, ohne Einstellungen zu überschreiben (Änderungen werden verworfen).
+        settings = LoadSettings()
+        detailViewScene = CreateDetailView(settings)
+        m.top.Push(detailViewScene)
+    else if buttonIndex = 1 ' Button Nein ausgewählt
+        ' Dialog schließen und zur Settings Scene zurückkehren
+        m.top.Pop()
+    end if
+end function
+
+function OnDialogKeyEvent(event as Object)
+    keyCode = event.GetRoSGNode().GetField("keyCode")
+    if keyCode = "back"
+        ' Dialog schließen und zur Settings Scene zurückkehren
+        m.top.Pop()
+    end if
+end function
+
+function OnKeyboardClosed()
+    ' Wenn das Keyboard geschlossen wurde, das Dialogfeld entfernen
+    m.top.dialog = invalid
+end function

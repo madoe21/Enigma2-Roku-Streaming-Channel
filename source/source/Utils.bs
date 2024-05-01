@@ -1,0 +1,301 @@
+function OpenSettingsScene() as Void
+    ' Hier kann die Einstellungsansicht geöffnet werden
+    settings = LoadSettings()
+    m.top.Push(CreateSettingsScene())
+end function
+
+function OpenVideoPlayer(channelURL as String) as Object
+    ' Video Player öffnen und Wiedergabe starten
+    screen = screen.CreateObject("roSGScreen")
+    videoPlayerView = screen.CreateScene("VideoPlayerView")
+    videoPlayer = videoPlayerView.CreateNode("VideoPlayer")
+    videoPlayer.contentUri = channelURL
+    videoPlayer.control = "play" ' Wiedergabe starten
+    screen.SetContent(videoPlayerView)
+
+    ' Aktualisieren von currentScene
+    currentScene = "VideoPlayerView"
+    
+    return screen
+end function
+
+function CloseVideoPlayerAndRestoreView(screen as Object) as Void
+    ' Video Player schließen
+    if screen <> invalid
+        screen.Close()
+
+        ' Zur Detailansicht zurückkehren und das zuvor ausgewählte Element markieren
+        settings = LoadSettings()
+        detailViewScene = CreateDetailView(settings)
+        screen.GetScene().Replace(detailViewScene) ' Verwende GetScene(), um die aktuelle Szene zu erhalten
+        ' Aktualisierung von currentScene
+        currentScene = "DetailView"
+    end if
+end function
+
+function OpenSelectedElementInDetailView() as Void
+    ' Das ausgewählte Element in der Detailansicht ermitteln
+    verticalList = m.top.findNode("VerticalList")
+    focusedItem = verticalList.getFocusedChild()
+    
+    if focusedItem <> invalid
+        selectedItem = focusedItem.getChild(verticalList.childFocusedIndex)
+        
+        ' Typ des ausgewählten Elements überprüfen und entsprechende Aktion ausführen
+        elementType = selectedItem.getName()
+        
+        if elementType = "ChannelTile"
+            ' Kanal im Video Player öffnen
+            OpenVideoPlayer(selectedItem.channelURL)
+        else if elementType = "SettingsTile"
+            ' Einstellungsansicht öffnen
+            OpenSettingsScene()
+        else
+            ' Weitere Elementtypen können hier hinzugefügt werden
+            print "Elementtyp nicht erkannt: " + elementType
+        end if
+    end if
+end function
+
+function ShowKeyboard(textEditBox as Object, Screen as Object) as Void
+    ' Neue Instanz des Keyboards erstellen
+    keyboard = screen.CreateObject("roSGNode", "Keyboard")
+    
+    ' Die Ziel-TextEditBox, an die der eingegebene Text gesendet werden soll, festlegen
+    keyboard.SetTextEditBox(textEditBox)
+    
+    ' Das Keyboard auf dem Bildschirm anzeigen
+    m.top.dialog = keyboard
+    m.top.dialog.visible = true
+    
+    ' Auf das Keyboard-Ereignis hören, um das Keyboard zu schließen, wenn die Eingabe beendet wurde
+    keyboard.observeField("closed", "OnKeyboardClosed")
+end function
+
+function ReadFile(filepath as String) as String
+    fileSystem = CreateObject("roFileSystem")
+    if fileSystem.FileExists(filepath)
+        file = fileSystem.OpenFile(filepath, "r")
+        content = file.ReadString()
+        file.Close()
+        return content
+    else
+        print "File not found"
+        return invalid
+    end if
+end function
+
+' Funktionen für die Senderverwaltung
+function BuildServicesURL(settings as Object) as String
+    protocol = "http://"
+    if settings.useHttps
+        protocol = "https://"
+    end if
+
+    return protocol + settings.username + ":" + settings.password + "@" + settings.hostname + ":" + settings.webInterfacePort + "/web/getservices"
+end function
+
+function BuildChannelURL(settings as Object, reference as String) as String
+    ' Basierend auf den Einstellungen die Basis-URL aufbauen
+    baseUrl = "http://" + settings.hostname + ":" + settings.streamingPort + "/" + reference
+
+    ' Überprüfen, ob die Authentifizierung erforderlich ist
+    if settings.requireAuthForStreaming
+        ' Wenn Benutzername und Passwort vorhanden sind, füge Basis-Authentifizierung zur URL hinzu
+        if settings.username <> "" and settings.password <> ""
+            baseUrl = "http://" + settings.username + ":" + settings.password + "@" + baseUrl
+        end if
+    end if
+
+    return baseUrl
+end function
+
+function DownloadServicesXML(url as String, settings as Object) as String
+    ' URL parsen, um Benutzernamen und Passwort zu extrahieren
+    authInfoStart = InStr(url, "://") + Len("://")
+    authInfoEnd = InStr(authInfoStart, url, "@")
+    authInfo = Mid(url, authInfoStart, authInfoEnd - authInfoStart)
+    colonPos = InStr(authInfo, ":")
+    username = Mid(authInfo, 1, colonPos - 1)
+    password = Mid(authInfo, colonPos + 1)
+
+    ' URL ohne Benutzername und Passwort
+    urlWithoutAuth = Mid(url, authInfoEnd + 1)
+
+    ' services.xml herunterladen und zurückgeben
+    downloader = screen.CreateObject("roUrlTransfer")
+    downloader.SetUrl(urlWithoutAuth)
+    downloader.SetRequest("Authorization", "Basic " + Base64Encode(username + ":" + password))
+    xmlData = ""
+    if downloader.AsyncGetToString()
+        while true
+            msg = wait(0, downloader.GetMessagePort())
+            if type(msg) = "roUrlEvent"
+                if msg.GetInt() = 0 ' Überprüfen, ob der Download abgeschlossen ist
+                    xmlData = downloader.GetToString()
+                    exit while
+                end if
+            end if
+        end while
+    end if
+
+    return xmlData
+end function
+
+function ParseServicesXML(xmlData as String, screen as Object) as Object
+    services = []
+
+    ' XML-Daten analysieren
+    xmlParser = screen.CreateObject("roXMLElement")
+    if xmlParser.Parse(xmlData)
+        ' Durch jedes <e2service> Element iterieren
+        for each serviceNode in xmlParser.getElementsByTagName("e2service")
+            ' Favoriten-Informationen extrahieren
+            reference = serviceNode.getChildText("e2servicereference")
+            name = serviceNode.getChildText("e2servicename")
+
+            ' Neues Objekt für den Favoriten erstellen und zur Liste hinzufügen
+            service = {
+                reference: reference,
+                name: name
+            }
+            services.Push(service)
+        end for
+    end if
+
+    return services
+end function
+
+' Utils.bs
+
+function Base64Encode(input as String) as String
+    ' Definiere den Basis-64-Zeichensatz
+    base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+    ' Variable zur Speicherung des codierten Ergebnisses
+    encodedString = ""
+
+    ' Berechne die Anzahl der Blöcke und füge ggf. Padding hinzu
+    blockCount = input.Len() / 3
+    paddingCount = 3 - (input.Len() Mod 3)
+    if paddingCount = 2 then paddingCount = 0 ' Kein Padding erforderlich
+    if paddingCount = 1 then paddingCount = 2 ' Füge ein '=' für ein fehlendes Byte hinzu
+    if paddingCount = 0 then paddingCount = 3 ' Füge zwei '=' für zwei fehlende Bytes hinzu
+
+    ' Iteriere über jedes Zeichen in der Eingabezeichenfolge
+    for i = 0 to input.Len() - 1 step 3
+        ' Extrahiere drei Bytes aus der Eingabezeichenfolge
+        chunk = input.Mid(i, 3)
+
+        ' Wandle die drei Bytes in vier Basis-64-Bytes um
+        encodedByte1 = Asc(chunk[0]) >> 2
+        encodedByte2 = ((Asc(chunk[0]) AND 0x03) << 4) OR (Asc(chunk[1]) >> 4)
+        encodedByte3 = ((Asc(chunk[1]) AND 0x0F) << 2) OR (Asc(chunk[2]) >> 6)
+        encodedByte4 = Asc(chunk[2]) AND 0x3F
+
+        ' Füge die Basis-64-Bytes der codierten Zeichenfolge hinzu
+        encodedString = encodedString + base64Chars[encodedByte1 + 1]
+        encodedString = encodedString + base64Chars[encodedByte2 + 1]
+        encodedString = encodedString + base64Chars[encodedByte3 + 1]
+        encodedString = encodedString + base64Chars[encodedByte4 + 1]
+    end for
+
+    ' Füge das erforderliche Padding hinzu
+    encodedString = encodedString.Left(encodedString.Len() - paddingCount) + "=".Repeat(paddingCount)
+
+    ' Gib die codierte Zeichenfolge zurück
+    return encodedString
+end function
+
+function UrlEncode(input as String) as String
+    ' Zeichenfolge zum Speichern des URL-kodierten Ergebnisses
+    encodedString = ""
+
+    ' Iteriere über jedes Zeichen in der Eingabezeichenfolge
+    for i = 0 to input.Len() - 1
+        ' Aktuelles Zeichen in der Eingabezeichenfolge
+        char = input[i]
+
+        ' Überprüfe, ob das Zeichen ein Sonderzeichen ist
+        if isUrlEncodeRequired(char)
+            ' Wenn ja, füge das Prozentkodierungsformat hinzu
+            encodedString = encodedString + "%" + Asc(char).ToHexString()
+        else
+            ' Andernfalls füge das Zeichen unverändert hinzu
+            encodedString = encodedString + char
+        end if
+    end for
+
+    ' Gib die URL-kodierte Zeichenfolge zurück
+    return encodedString
+end function
+
+function isUrlEncodeRequired(char as String) as Boolean
+    ' Liste der Sonderzeichen, die URL-kodiert werden müssen
+    specialCharacters = "!""#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
+
+    ' Überprüfe, ob das aktuelle Zeichen ein Sonderzeichen ist
+    return specialCharacters.IndexOf(char) >= 0
+end function
+
+function DownloadM3U8(settings as Object, reference as String, name as String) as String
+    ' URL für die M3U8-Datei zusammenstellen
+    protocol = "http://"
+    if settings.useHttps
+        protocol = "https://"
+    end if
+    url = protocol + settings.username + ":" + settings.password + "@" + settings.hostname + ":" + settings.webInterfacePort + "/web/services.m3u?bRef=" + UrlEncode(reference) + "&b" + UrlEncode(name)
+
+    ' Temporäre Datei für das Speichern der M3U8-Datei erstellen
+    tempFilePath = CreateObject("roFileSystem").GetTemporaryFile(name + ".m3u8")
+    tempFile = CreateObject("roStream").OpenFile(tempFilePath, "write")
+
+    ' M3U8-Datei herunterladen und in die temporäre Datei schreiben
+    downloader = CreateObject("roUrlTransfer")
+    downloader.SetUrl(url)
+    downloader.SetRequest("Authorization", "Basic " + Base64Encode(settings.username + ":" + settings.password))
+    if downloader.AsyncGetToFile(tempFilePath)
+        while true
+            msg = wait(0, downloader.GetMessagePort())
+            if type(msg) = "roUrlEvent"
+                if msg.GetInt() = 0 ' Überprüfen, ob der Download abgeschlossen ist
+                    exit while
+                end if
+            end if
+        end while
+    end if
+
+    return tempFilePath
+end function
+
+function ParseM3U8(content as String, settings as Object) as Object
+    channels = []
+    lines = content.split("\n")
+    name = ""
+    logo = ""
+    for each line in lines
+        line = line.trim()
+        if line.startsWith("#EXTINF:")
+            ' Parse Kanalinformationen aus der Zeile
+            commaIndex = line.lastIndexOf(",")
+            if commaIndex <> -1
+                name = line.substring(commaIndex + 1)
+            end if
+            ' logo-URL setzen
+            logo = ""
+            match = line.match(",([^,]+)$")
+            if match <> invalid
+                logo = match[1]
+            end if
+        elseif line.startsWith("http://")
+            ' Parse Kanal-URL
+            channel = {
+                name: name,
+                logo: logo,
+                url: BuildChannelURL(settings, line) ' BuildChannelURL aufrufen, um die URL zu erstellen
+            }
+            channels.push(channel)
+        end if
+    end for
+    return channels
+end function

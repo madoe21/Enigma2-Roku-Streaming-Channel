@@ -1,0 +1,23 @@
+' SettingsView.bs
+' import "pkg:/source/Settings.bs"
+import "pkg:/source/DefaultValues.bs"
+
+function init()
+    m.top.setFocus(true)
+end function
+
+function render()
+    settings = loadSettings()
+    hostname = settings.hostname <> invalid ? settings.hostname : HOSTNAME
+    webInterfacePort = settings.webInterfacePort <> invalid ? settings.webInterfacePort : WEBIF_PORT
+    useHttps = settings.useHttps <> invalid ? settings.useHttps : USE_HTTPS
+    streamingPort = settings.streamingPort <> invalid ? settings.streamingPort : STREAMING_PORT
+    username = settings.username <> invalid ? settings.username : USERNAME
+    password = settings.password <> invalid ? settings.password : PASSWORD
+    webAuthRequired = settings.webAuthRequired <> invalid ? settings.webAuthRequired : WEB_AUTH_REQUIRED
+    streamingAuthRequired = settings.streamingAuthRequired <> invalid ? settings.streamingAuthRequired : STREAMING_AUTH_REQUIRED
+    
+return 'Dies ist
+ein Test'
+
+end function

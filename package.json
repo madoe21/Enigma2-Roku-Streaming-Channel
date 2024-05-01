@@ -1,0 +1,17 @@
+{
+  "name": "enigma2-streaming-channel",
+  "version": "0.1.0",
+  "description": "Enigma2 Streaming Channel for Roku using BrighterScript",
+  "main": "source/source/Main.bs",
+  "scripts": {
+    "build": "bsc --outdir dist --format cjs --createPackage=false",
+    "package": "bsc --outdir dist --format cjs --create-package",
+    "lint": "bsc --lint",
+    "deploy": "bsc --deploy"
+  },
+  "author": "Madoe21",
+  "license": "MIT",
+  "devDependencies": {
+    "brighterscript": "0.65.27"
+  }
+}

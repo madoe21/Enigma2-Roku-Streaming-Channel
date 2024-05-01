@@ -1,0 +1,50 @@
+function LoadSettings() as Object
+    ' Einstellungen aus der roRegistry laden
+    settings = CreateObject("roRegistry").Read("settings")
+    if settings <> invalid
+        return settings
+    else
+        ' Wenn keine Einstellungen gefunden wurden, Standardwerte verwenden
+        return {
+            hostname: "dreambox",
+            webInterfacePort: "80",
+            streamingPort: "8001",
+            username: "root",
+            password: "",
+            useHttps: false,
+            requireAuthForWebInterface: true,
+            requireAuthForStreaming: false ' Standardwert auf false setzen
+        }
+    end if
+end function
+
+function SaveSettings()
+    settingsView = m.top.FindNode("SettingsView")
+
+    hostname = settingsView.hostname.text
+    webInterfacePort = settingsView.webInterfacePort.text
+    streamingPort = settingsView.streamingPort.text
+    username = settingsView.username.text
+    password = settingsView.password.text
+    useHttps = settingsView.useHttps.checked
+    requireAuthForWebInterface = settingsView.requireAuthForWebInterface.checked
+    requireAuthForStreaming = settingsView.requireAuthForStreaming.checked
+
+    settings = {
+        hostname: hostname,
+        webInterfacePort: webInterfacePort,
+        streamingPort: streamingPort,
+        username: username,
+        password: password,
+        useHttps: useHttps,
+        requireAuthForWebInterface: requireAuthForWebInterface,
+        requireAuthForStreaming: requireAuthForStreaming
+    }
+
+    ' Einstellungen in der roRegistry speichern
+    registry = CreateObject("roRegistry")
+    registry.Write("settings", settings)
+
+    ' Hauptansicht neu laden
+    m.top.Replace(CreateMainScene())
+end function

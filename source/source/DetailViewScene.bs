@@ -1,0 +1,117 @@
+' Imports
+import "pkg:/source/Utils.bs"
+import "pkg:/source/Remote.bs"
+import "pkg:/source/Settings.bs"
+
+function CreateDetailView(settings as Object) as Object
+    ' Detailansicht erstellen und anzeigen
+    screen = CreateObject("roSGScreen")
+    detailScene = screen.CreateScene("DetailViewScene")
+
+    ' Event-Handler für die Fernbedienungstasten registrieren
+    detailScene.observeField("onKeyEvent", "OnRemoteKeyEvent")
+
+    ' Aktualisieren von currentScene
+    currentScene = "DetailViewScene"
+
+    ' Hier Favoritenliste und Senderliste laden und anzeigen
+    ' services.xml herunterladen und parsen
+    servicesURL = BuildServicesURL(settings)
+    xmlData = DownloadServicesXML(servicesURL, settings)
+    if xmlData <> invalid
+        services = ParseServicesXML(xmlData, screen)
+        detailView = CreateObject("roSGNode", "DetailView")
+
+        ' UI-Elemente für die Detailansicht hinzufügen und die Favoritenliste anzeigen
+        verticalList = CreateObject("roSGNode", "VerticalList")
+        verticalList.spacing = 5
+
+        for each favoriten in services
+            ' Erstelle ein Listenelement für den Favoriten
+            favoritenItem = CreateObject("roSGNode", "ListItem")
+            favoritenItem.label = favoriten.name
+
+            ' Erstelle horizontale Liste für die Kanäle des Favoriten
+            horizontalList = CreateObject("roSGNode", "HorizontalList")
+            horizontalList.spacing = 5
+            horizontalList.size = 10 ' Anzahl der Kacheln, die gleichzeitig sichtbar sind
+            
+            ' M3U8-Datei herunterladen und verarbeiten
+            m3u8FilePath = DownloadM3U8(settings, favoriten.reference, favoriten.name)
+            if m3u8FilePath <> invalid
+                m3u8Content = ReadFile(m3u8FilePath)
+                if m3u8Content <> invalid
+                    channels = ParseM3U8(m3u8Content, settings)
+                    for each channel in channels
+                        if channel["logo"] = ""
+                            logoURL = "pkg:/images/no_channel.png"
+                        else
+                            logoURL = channel["logo"]
+                        end if
+                        horizontalList.appendChild(CreateChannelTile(channel["name"], logoURL))
+                    end for
+                end if
+            end if
+            
+            ' Füge die horizontale Liste als untergeordnetes Element des Favoriten in der vertikalen Liste hinzu
+            favoritenItem.appendChild(horizontalList)
+            
+            ' Füge das Favoriten-Element zur vertikalen Liste hinzu
+            verticalList.appendChild(favoritenItem)
+        end for
+
+        ' Füge das Einstellungen-Element zur vertikalen Liste hinzu 
+        verticalList.appendChild(CreateSettingsTile())
+
+        ' Füge die vertikale Liste zur Detailansicht hinzu
+        detailView.appendChild(verticalList)
+        
+        return detailView
+    else
+        ' Behandlung für den Fall, dass die XML-Datei nicht heruntergeladen werden konnte
+        ' Anlegen der UI-Elemente
+        errorMessageGroup = CreateObject("roSGNode", "Group")
+        errorMessageLabel = CreateObject("roSGNode", "Label")
+        retryButton = CreateObject("roSGNode", "Button")
+        settingsButton = CreateObject("roSGNode", "Button")
+
+        ' Setzen der Texte
+        errorMessageLabel.text = "Die Sender konnten nicht geladen werden. Bitte erneut versuchen oder Einstellungen anpassen."
+        retryButton.text = "Erneut versuchen"
+        settingsButton.text = "Einstellungen öffnen"
+
+        ' Event-Handler hinzufügen
+        retryButton.observeField("press", "OnRetryButtonPressed")
+        settingsButton.observeField("press", "OpenSettingsScene")
+
+        ' Elemente der errorMessageGroup hinzufügen
+        errorMessageGroup.appendChild(errorMessageLabel)
+        errorMessageGroup.appendChild(retryButton)
+        errorMessageGroup.appendChild(settingsButton)
+
+        return errorMessageGroup
+    end if
+end function
+
+function CreateChannelTile(name as String, logo as String) as Object
+    channelTile = CreateObject("roSGNode", "Tile")
+    channelTile.name = name
+    channelTile.logo = logo
+    return channelTile
+end function
+
+function CreateSettingsTile() as Object
+    ' Haupt-Element für die Einstellungen
+    settingsItem = CreateObject("roSGNode", "Tile")
+    settingsItem.name = "Einstellungen"
+    settingsItem.logo = "pkg:/images/settings.png" ' Korrektur hier
+    
+    ' Unterelement, das eine weitere Liste für Einstellungen darstellt
+    settingsList = CreateObject("roSGNode", "HorizontalList")
+    settingsList.spacing = 5
+    
+    ' Füge das Unterelement dem Haupt-Element hinzu
+    settingsItem.appendChild(settingsList)
+    
+    return settingsItem
+end function

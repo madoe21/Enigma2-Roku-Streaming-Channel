@@ -1,0 +1,14 @@
+{
+  "host": "$ROKU_IP",
+  "username": "rokudev",
+  "password": "roku1234",
+  "rootDir": "./source",
+  "outDir": "./out",
+  "fileEncoding": "utf8",
+  "files": [
+    "**/*"
+  ],
+  "autoImportComponentScript": true,
+  "sourceMap": true,
+  "namespace": true
+}
